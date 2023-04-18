@@ -1,0 +1,106 @@
+﻿@{
+    ViewBag.Title = "Panel";
+}
+
+<div class="main">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Sposoby dostaw
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div id="deliveriesTable">
+                        <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" id="addRecordButton"><span class="ui-button-text">Dodaj sposób dostawy</span></button>
+                    </div>
+
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script>
+        $(function () {
+
+        $('#deliveriesTable').jtable({
+            paging: true,
+            sorting: false,
+            pageSize: 10,
+            defaultSorting: '',
+            actions: {
+                listAction: '@Html.Raw(@Url.Action("DeliveriesJSON", "Delivery"))',
+                createAction: '@Html.Raw(@Url.Action("CreateDeliveryJSON", "Delivery"))',
+                updateAction: '@Html.Raw(@Url.Action("UpdateDeliveryJSON", "Delivery"))',
+                deleteAction: '@Html.Raw(@Url.Action("DeleteDeliveryJSON", "Delivery"))'
+            },
+            messages: jtMsgLang,
+            deleteConfirmation: function (data) {
+                data.deleteConfirmMessage = 'Czy usunąć dostawcę ' + data.record.Name + '?';
+            },
+            fields: {
+                    Id: {
+                        key: true,
+                        list: false,
+                        visibility: "hidden"
+                    },
+                    Name: {
+                        title: 'Nazwa',
+                        width: '10%'
+                    },
+                    PriceForWeight: {
+                        title: 'Cena za kg',
+                        width: '10%'
+                    },
+                    InsurancePercentCost: {
+                        title: 'Cena ubezpieczenia [% wartości]',
+                        width: '10%'
+                    },
+                    TrackUrl: {
+                        title: 'Link do śledzenia',
+                        width: '10%'
+                    }
+            },
+            recordsLoaded: function (event, data) {
+
+            },
+            recordDeleted: function (event, data) {
+                $('#deliveriesTable').jtable('reload');
+            },
+            recordAdded: function (event, data) {
+                $('#deliveriesTable').jtable('reload');
+            },
+            addRecordButton: $('#addRecordButton'),
+
+            //Initialize validation logic when a form is created
+            formCreated: function (event, data) {
+                data.form.find('input[name="Name"]').addClass('validate[required]');
+                data.form.validationEngine();
+            },
+            //Validate form when it is being submitted
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            //Dispose validation logic when form is closed
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+
+                $('#deliveriesTable').jtable('reload');
+            }
+        });
+
+            $('#deliveriesTable').jtable('load');
+    })
+    </script>
+
+    <style>
+    </style>
+
+    @Scripts.Render("~/mainJS")
+}

@@ -1,0 +1,112 @@
+﻿@model int
+@{
+    Layout = null;
+}
+
+
+<div id="shipmentProductsTable">
+    <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" id="addRecordButton"><span class="ui-button-text">Dodaj produkt do zamówienia</span></button>
+</div>
+
+
+@section Scripts{
+
+    <script>
+        $(function () {
+
+        $('#shipmentProductsTable').jtable({
+            paging: true,
+            sorting: false,
+            pageSize: 10,
+            defaultSorting: '',
+            actions: {
+                listAction: '@Html.Raw(@Url.Action("ShipmentProductsJSON", "ShipmentProduct", new { shipmentId = Model }))',
+                createAction: '@Html.Raw(@Url.Action("CreateShipmentProductJSON", "ShipmentProduct"))',
+                updateAction: '@Html.Raw(@Url.Action("UpdateShipmentProductJSON", "ShipmentProduct"))',
+                deleteAction: '@Html.Raw(@Url.Action("DeleteShipmentProductJSON", "ShipmentProduct"))'
+            },
+            messages: jtMsgLang,
+            deleteConfirmation: function (data) {
+                //data.deleteConfirmMessage = 'Czy usunąć ' + data.record.Name + '?';
+            },
+            fields: {
+                    Id: {
+                        key: true,
+                        list: false,
+                        visibility: "hidden"
+                    },
+                    Name: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        title: 'Nazwa produktu',
+                        width: '10%'
+                    },
+                    Details: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        title: 'Cechy',
+                        width: '10%',
+                        type: 'textarea'
+                    },
+                    Price: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        title: 'Cena',
+                        width: '10%'
+                    },
+                    QuantityInWarehouse: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        title: 'Ilość w magazynie',
+                        width: '10%'
+                    },
+                    Count: {
+                        title: 'Ilość w paczce',
+                        width: '10%',
+                        input: function (data) {
+                            return '<input type="number" step="1" min="1" max="10000" value="' + data.record.Count + '" />';
+                        }
+                        //<input type="number" value="50" min="0" max="100" step="10"/>
+                    }
+            },
+            recordsLoaded: function (event, data) {
+
+            },
+            recordDeleted: function (event, data) {
+                $('#shipmentProductsTable').jtable('reload');
+            },
+            recordAdded: function (event, data) {
+                $('#shipmentProductsTable').jtable('reload');
+            },
+            addRecordButton: $('#addRecordButton'),
+
+            //Initialize validation logic when a form is created
+            formCreated: function (event, data) {
+                data.form.validationEngine();
+            },
+            //Validate form when it is being submitted
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            //Dispose validation logic when form is closed
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+
+                $('#shipmentProductsTable').jtable('reload');
+            }
+        });
+
+            $('#shipmentProductsTable').jtable('load');
+    })
+    </script>
+
+    <style>
+    </style>
+
+    @Scripts.Render("~/mainJS")
+}

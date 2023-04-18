@@ -1,0 +1,615 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="2.0" xmlns:edmx="http://schemas.microsoft.com/ado/2008/10/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="CarPartsModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/02/edm/ssdl">
+        <EntityType Name="Accounts">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="FirstName" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="LastName" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="UserName" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Password" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Email" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="AccountRole" Type="int" Nullable="false" />
+          <Property Name="Deleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="Address">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Street" Type="nvarchar" MaxLength="200" />
+          <Property Name="HouseNo" Type="nvarchar" MaxLength="20" />
+          <Property Name="FlatNo" Type="nvarchar" MaxLength="20" />
+          <Property Name="PostCode" Type="nvarchar" MaxLength="20" />
+          <Property Name="Place" Type="nvarchar" MaxLength="100" />
+          <Property Name="Deleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="Customers">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" />
+          <Property Name="Surname" Type="nvarchar" MaxLength="100" />
+          <Property Name="CompanyName" Type="nvarchar" MaxLength="200" />
+          <Property Name="NIP" Type="nvarchar" MaxLength="30" />
+          <Property Name="REGON" Type="nvarchar" MaxLength="30" />
+          <Property Name="PESEL" Type="nvarchar" MaxLength="20" />
+          <Property Name="AddressId" Type="int" />
+          <Property Name="Email" Type="nvarchar" MaxLength="50" />
+          <Property Name="Phone" Type="nvarchar" MaxLength="25" />
+          <Property Name="Deleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="Deliveries">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="TrackUrl" Type="nvarchar(max)" />
+          <Property Name="Deleted" Type="bit" />
+          <Property Name="PriceForWeight" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="InsurancePercentCost" Type="int" />
+        </EntityType>
+        <EntityType Name="Products">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar(max)" Nullable="false" />
+          <Property Name="Details" Type="nvarchar(max)" />
+          <Property Name="QuantityInWarehouse" Type="int" Nullable="false" />
+          <Property Name="Price" Type="decimal" Precision="8" Scale="2" Nullable="false" />
+          <Property Name="Deleted" Type="bit" />
+          <Property Name="Weight" Type="decimal" Precision="8" Scale="2" />
+        </EntityType>
+        <EntityType Name="ShipmentProducts">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ShipmentId" Type="int" Nullable="false" />
+          <Property Name="ProductId" Type="int" Nullable="false" />
+          <Property Name="Count" Type="int" Nullable="false" />
+          <Property Name="InShipment" Type="bit" />
+          <Property Name="Deleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="Shipments">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CustomerId" Type="int" Nullable="false" />
+          <Property Name="DeliveryId" Type="int" />
+          <Property Name="CreateDate" Type="datetime" Nullable="false" />
+          <Property Name="ReceiptDate" Type="datetime" />
+          <Property Name="DeliveryDate" Type="datetime" />
+          <Property Name="Insurance" Type="bit" Nullable="false" />
+          <Property Name="DeliveryCost" Type="decimal" Precision="8" Scale="2" />
+          <Property Name="ShippingNumber" Type="nvarchar" MaxLength="100" />
+          <Property Name="Weight" Type="decimal" Precision="8" Scale="2" />
+          <Property Name="Size" Type="decimal" Precision="8" Scale="2" />
+          <Property Name="Price" Type="decimal" Precision="12" Scale="2" />
+          <Property Name="CreatedBy" Type="int" Nullable="false" />
+          <Property Name="ShipmentStatusId" Type="int" Nullable="false" />
+          <Property Name="Deleted" Type="bit" />
+        </EntityType>
+        <EntityType Name="ShipmentStatuses">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="Deleted" Type="bit" />
+        </EntityType>
+        <Association Name="FK_Customers_To_Address">
+          <End Role="Address" Type="Self.Address" Multiplicity="0..1" />
+          <End Role="Customers" Type="Self.Customers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Address">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Customers">
+              <PropertyRef Name="AddressId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ShipmentProducts_To_Products">
+          <End Role="Products" Type="Self.Products" Multiplicity="1" />
+          <End Role="ShipmentProducts" Type="Self.ShipmentProducts" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ShipmentProducts">
+              <PropertyRef Name="ProductId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ShipmentProducts_To_Shipments">
+          <End Role="Shipments" Type="Self.Shipments" Multiplicity="1" />
+          <End Role="ShipmentProducts" Type="Self.ShipmentProducts" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Shipments">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ShipmentProducts">
+              <PropertyRef Name="ShipmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Shipments_To_Accounts">
+          <End Role="Accounts" Type="Self.Accounts" Multiplicity="1" />
+          <End Role="Shipments" Type="Self.Shipments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Accounts">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Shipments">
+              <PropertyRef Name="CreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Shipments_To_Customers">
+          <End Role="Customers" Type="Self.Customers" Multiplicity="1" />
+          <End Role="Shipments" Type="Self.Shipments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Customers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Shipments">
+              <PropertyRef Name="CustomerId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Shipments_To_Deliveries">
+          <End Role="Deliveries" Type="Self.Deliveries" Multiplicity="0..1" />
+          <End Role="Shipments" Type="Self.Shipments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Deliveries">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Shipments">
+              <PropertyRef Name="DeliveryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Shipments_To_ShipmentStatuses">
+          <End Role="ShipmentStatuses" Type="Self.ShipmentStatuses" Multiplicity="1" />
+          <End Role="Shipments" Type="Self.Shipments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ShipmentStatuses">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Shipments">
+              <PropertyRef Name="ShipmentStatusId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="CarPartsModelStoreContainer">
+          <EntitySet Name="Accounts" EntityType="Self.Accounts" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Address" EntityType="Self.Address" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Customers" EntityType="Self.Customers" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Deliveries" EntityType="Self.Deliveries" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Products" EntityType="Self.Products" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ShipmentProducts" EntityType="Self.ShipmentProducts" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Shipments" EntityType="Self.Shipments" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ShipmentStatuses" EntityType="Self.ShipmentStatuses" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_Customers_To_Address" Association="Self.FK_Customers_To_Address">
+            <End Role="Address" EntitySet="Address" />
+            <End Role="Customers" EntitySet="Customers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ShipmentProducts_To_Products" Association="Self.FK_ShipmentProducts_To_Products">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="ShipmentProducts" EntitySet="ShipmentProducts" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ShipmentProducts_To_Shipments" Association="Self.FK_ShipmentProducts_To_Shipments">
+            <End Role="Shipments" EntitySet="Shipments" />
+            <End Role="ShipmentProducts" EntitySet="ShipmentProducts" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Shipments_To_Accounts" Association="Self.FK_Shipments_To_Accounts">
+            <End Role="Accounts" EntitySet="Accounts" />
+            <End Role="Shipments" EntitySet="Shipments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Shipments_To_Customers" Association="Self.FK_Shipments_To_Customers">
+            <End Role="Customers" EntitySet="Customers" />
+            <End Role="Shipments" EntitySet="Shipments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Shipments_To_Deliveries" Association="Self.FK_Shipments_To_Deliveries">
+            <End Role="Deliveries" EntitySet="Deliveries" />
+            <End Role="Shipments" EntitySet="Shipments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Shipments_To_ShipmentStatuses" Association="Self.FK_Shipments_To_ShipmentStatuses">
+            <End Role="ShipmentStatuses" EntitySet="ShipmentStatuses" />
+            <End Role="Shipments" EntitySet="Shipments" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="CarPartsModel" Alias="Self" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2008/09/edm">
+        <EntityContainer Name="CarPartsEntities" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="Accounts" EntityType="CarPartsModel.Account" />
+          <EntitySet Name="Products" EntityType="CarPartsModel.Products" />
+          <EntitySet Name="Shipments" EntityType="CarPartsModel.Shipments" />
+          <AssociationSet Name="FK_Shipments_To_Accounts" Association="CarPartsModel.FK_Shipments_To_Accounts">
+            <End Role="Account" EntitySet="Accounts" />
+            <End Role="Shipments" EntitySet="Shipments" />
+          </AssociationSet>
+          <EntitySet Name="ShipmentProducts" EntityType="CarPartsModel.ShipmentProducts" />
+          <AssociationSet Name="FK_ShipmentProducts_To_Products" Association="CarPartsModel.FK_ShipmentProducts_To_Products">
+            <End Role="Products" EntitySet="Products" />
+            <End Role="ShipmentProducts" EntitySet="ShipmentProducts" />
+          </AssociationSet>
+          <AssociationSet Name="FK_ShipmentProducts_To_Shipments" Association="CarPartsModel.FK_ShipmentProducts_To_Shipments">
+            <End Role="Shipments" EntitySet="Shipments" />
+            <End Role="ShipmentProducts" EntitySet="ShipmentProducts" />
+          </AssociationSet>
+          <EntitySet Name="Deliveries" EntityType="CarPartsModel.Deliveries" />
+          <EntitySet Name="ShipmentStatuses" EntityType="CarPartsModel.ShipmentStatuses" />
+          <AssociationSet Name="FK_Shipments_To_Deliveries" Association="CarPartsModel.FK_Shipments_To_Deliveries">
+            <End Role="Deliveries" EntitySet="Deliveries" />
+            <End Role="Shipments" EntitySet="Shipments" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Shipments_To_ShipmentStatuses" Association="CarPartsModel.FK_Shipments_To_ShipmentStatuses">
+            <End Role="ShipmentStatuses" EntitySet="ShipmentStatuses" />
+            <End Role="Shipments" EntitySet="Shipments" />
+          </AssociationSet>
+          <EntitySet Name="Address" EntityType="CarPartsModel.Address" />
+          <EntitySet Name="Customers" EntityType="CarPartsModel.Customers" />
+          <AssociationSet Name="FK_Customers_To_Address" Association="CarPartsModel.FK_Customers_To_Address">
+            <End Role="Address" EntitySet="Address" />
+            <End Role="Customers" EntitySet="Customers" />
+          </AssociationSet>
+          <AssociationSet Name="FK_Shipments_To_Customers" Association="CarPartsModel.FK_Shipments_To_Customers">
+            <End Role="Customers" EntitySet="Customers" />
+            <End Role="Shipments" EntitySet="Shipments" />
+          </AssociationSet>
+          </EntityContainer>
+        <EntityType Name="Account">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="FirstName" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="LastName" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="UserName" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="Password" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="Email" Type="String" Nullable="false" MaxLength="Max" Unicode="true" FixedLength="false" />
+          <Property Name="AccountRole" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Shipments" Relationship="CarPartsModel.FK_Shipments_To_Accounts" FromRole="Account" ToRole="Shipments" />
+          <Property Name="Deleted" Type="Boolean" />
+        </EntityType>
+        <EntityType Name="Products">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Details" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="QuantityInWarehouse" Type="Int32" Nullable="false" />
+          <Property Name="Price" Type="Decimal" Nullable="false" Precision="8" Scale="2" />
+          <NavigationProperty Name="ShipmentProducts" Relationship="CarPartsModel.FK_ShipmentProducts_To_Products" FromRole="Products" ToRole="ShipmentProducts" />
+          <Property Name="Deleted" Type="Boolean" />
+          <Property Name="Weight" Type="Decimal" Precision="8" Scale="2" />
+        </EntityType>
+        <EntityType Name="Shipments">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" />
+          <Property Name="CustomerId" Type="Int32" Nullable="false" />
+          <Property Name="DeliveryId" Type="Int32" />
+          <Property Name="CreateDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="ReceiptDate" Type="DateTime" Precision="3" />
+          <Property Name="DeliveryDate" Type="DateTime" Precision="3" />
+          <Property Name="Insurance" Type="Boolean" Nullable="false" />
+          <Property Name="DeliveryCost" Type="Decimal" Precision="8" Scale="2" />
+          <Property Name="ShippingNumber" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Weight" Type="Decimal" Precision="8" Scale="2" />
+          <Property Name="Price" Type="Decimal" Precision="12" Scale="2" />
+          <Property Name="CreatedBy" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Accounts" Relationship="CarPartsModel.FK_Shipments_To_Accounts" FromRole="Shipments" ToRole="Account" />
+          <NavigationProperty Name="ShipmentProducts" Relationship="CarPartsModel.FK_ShipmentProducts_To_Shipments" FromRole="Shipments" ToRole="ShipmentProducts" />
+          <NavigationProperty Name="Deliveries" Relationship="CarPartsModel.FK_Shipments_To_Deliveries" FromRole="Shipments" ToRole="Deliveries" />
+          <Property Name="ShipmentStatusId" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="ShipmentStatuses" Relationship="CarPartsModel.FK_Shipments_To_ShipmentStatuses" FromRole="Shipments" ToRole="ShipmentStatuses" />
+          <NavigationProperty Name="Customers" Relationship="CarPartsModel.FK_Shipments_To_Customers" FromRole="Shipments" ToRole="Customers" />
+          <Property Name="Deleted" Type="Boolean" />
+          <Property Name="Size" Type="Decimal" Precision="8" Scale="2" />
+        </EntityType>
+        <Association Name="FK_Shipments_To_Accounts">
+          <End Type="CarPartsModel.Account" Role="Account" Multiplicity="1" />
+          <End Type="CarPartsModel.Shipments" Role="Shipments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Account">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Shipments">
+              <PropertyRef Name="CreatedBy" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="ShipmentProducts">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ShipmentId" Type="Int32" Nullable="false" />
+          <Property Name="ProductId" Type="Int32" Nullable="false" />
+          <Property Name="Count" Type="Int32" Nullable="false" />
+          <NavigationProperty Name="Products" Relationship="CarPartsModel.FK_ShipmentProducts_To_Products" FromRole="ShipmentProducts" ToRole="Products" />
+          <NavigationProperty Name="Shipments" Relationship="CarPartsModel.FK_ShipmentProducts_To_Shipments" FromRole="ShipmentProducts" ToRole="Shipments" />
+          <Property Name="Deleted" Type="Boolean" />
+          <Property Name="InShipment" Type="Boolean" />
+        </EntityType>
+        <Association Name="FK_ShipmentProducts_To_Products">
+          <End Type="CarPartsModel.Products" Role="Products" Multiplicity="1" />
+          <End Type="CarPartsModel.ShipmentProducts" Role="ShipmentProducts" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Products">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ShipmentProducts">
+              <PropertyRef Name="ProductId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_ShipmentProducts_To_Shipments">
+          <End Type="CarPartsModel.Shipments" Role="Shipments" Multiplicity="1" />
+          <End Type="CarPartsModel.ShipmentProducts" Role="ShipmentProducts" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Shipments">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="ShipmentProducts">
+              <PropertyRef Name="ShipmentId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Deliveries">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="TrackUrl" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Shipments" Relationship="CarPartsModel.FK_Shipments_To_Deliveries" FromRole="Deliveries" ToRole="Shipments" />
+          <Property Name="Deleted" Type="Boolean" />
+          <Property Name="PriceForWeight" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="InsurancePercentCost" Type="Int32" />
+        </EntityType>
+        <EntityType Name="ShipmentStatuses">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Shipments" Relationship="CarPartsModel.FK_Shipments_To_ShipmentStatuses" FromRole="ShipmentStatuses" ToRole="Shipments" />
+          <Property Name="Deleted" Type="Boolean" />
+        </EntityType>
+        <Association Name="FK_Shipments_To_Deliveries">
+          <End Type="CarPartsModel.Deliveries" Role="Deliveries" Multiplicity="0..1" />
+          <End Type="CarPartsModel.Shipments" Role="Shipments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Deliveries">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Shipments">
+              <PropertyRef Name="DeliveryId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Shipments_To_ShipmentStatuses">
+          <End Type="CarPartsModel.ShipmentStatuses" Role="ShipmentStatuses" Multiplicity="1" />
+          <End Type="CarPartsModel.Shipments" Role="Shipments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ShipmentStatuses">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Shipments">
+              <PropertyRef Name="ShipmentStatusId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Address">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Street" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="HouseNo" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="FlatNo" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="PostCode" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="Place" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="Customers" Relationship="CarPartsModel.FK_Customers_To_Address" FromRole="Address" ToRole="Customers" />
+          <Property Name="Deleted" Type="Boolean" />
+        </EntityType>
+        <EntityType Name="Customers">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="Surname" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="CompanyName" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="NIP" Type="String" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Name="REGON" Type="String" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Name="PESEL" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="AddressId" Type="Int32" />
+          <NavigationProperty Name="Address" Relationship="CarPartsModel.FK_Customers_To_Address" FromRole="Customers" ToRole="Address" />
+          <NavigationProperty Name="Shipments" Relationship="CarPartsModel.FK_Shipments_To_Customers" FromRole="Customers" ToRole="Shipments" />
+          <Property Name="Email" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Phone" Type="String" MaxLength="25" FixedLength="false" Unicode="true" />
+          <Property Name="Deleted" Type="Boolean" />
+        </EntityType>
+        <Association Name="FK_Customers_To_Address">
+          <End Type="CarPartsModel.Address" Role="Address" Multiplicity="0..1" />
+          <End Type="CarPartsModel.Customers" Role="Customers" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Address">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Customers">
+              <PropertyRef Name="AddressId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_Shipments_To_Customers">
+          <End Type="CarPartsModel.Customers" Role="Customers" Multiplicity="1" />
+          <End Type="CarPartsModel.Shipments" Role="Shipments" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Customers">
+              <PropertyRef Name="Id" />
+            </Principal>
+            <Dependent Role="Shipments">
+              <PropertyRef Name="CustomerId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+    <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2008/09/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="CarPartsModelStoreContainer" CdmEntityContainer="CarPartsEntities">
+    <EntitySetMapping Name="Accounts">
+      <EntityTypeMapping TypeName="IsTypeOf(CarPartsModel.Account)">
+        <MappingFragment StoreEntitySet="Accounts">
+          <ScalarProperty Name="Deleted" ColumnName="Deleted" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="FirstName" ColumnName="FirstName" />
+          <ScalarProperty Name="LastName" ColumnName="LastName" />
+          <ScalarProperty Name="UserName" ColumnName="UserName" />
+          <ScalarProperty Name="Password" ColumnName="Password" />
+          <ScalarProperty Name="Email" ColumnName="Email" />
+          <ScalarProperty Name="AccountRole" ColumnName="AccountRole" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Products">
+      <EntityTypeMapping TypeName="IsTypeOf(CarPartsModel.Products)">
+        <MappingFragment StoreEntitySet="Products">
+          <ScalarProperty Name="Weight" ColumnName="Weight" />
+                <ScalarProperty Name="Deleted" ColumnName="Deleted" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Details" ColumnName="Details" />
+          <ScalarProperty Name="QuantityInWarehouse" ColumnName="QuantityInWarehouse" />
+          <ScalarProperty Name="Price" ColumnName="Price" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Shipments">
+      <EntityTypeMapping TypeName="IsTypeOf(CarPartsModel.Shipments)">
+        <MappingFragment StoreEntitySet="Shipments">
+          <ScalarProperty Name="Size" ColumnName="Size" />
+                <ScalarProperty Name="Deleted" ColumnName="Deleted" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="CustomerId" ColumnName="CustomerId" />
+          <ScalarProperty Name="DeliveryId" ColumnName="DeliveryId" />
+          <ScalarProperty Name="CreateDate" ColumnName="CreateDate" />
+          <ScalarProperty Name="ReceiptDate" ColumnName="ReceiptDate" />
+          <ScalarProperty Name="DeliveryDate" ColumnName="DeliveryDate" />
+          <ScalarProperty Name="Insurance" ColumnName="Insurance" />
+          <ScalarProperty Name="DeliveryCost" ColumnName="DeliveryCost" />
+          <ScalarProperty Name="ShippingNumber" ColumnName="ShippingNumber" />
+          <ScalarProperty Name="Weight" ColumnName="Weight" />
+          <ScalarProperty Name="Price" ColumnName="Price" />
+          <ScalarProperty Name="CreatedBy" ColumnName="CreatedBy" />
+          <ScalarProperty Name="ShipmentStatusId" ColumnName="ShipmentStatusId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="ShipmentProducts">
+      <EntityTypeMapping TypeName="IsTypeOf(CarPartsModel.ShipmentProducts)">
+        <MappingFragment StoreEntitySet="ShipmentProducts">
+          <ScalarProperty Name="InShipment" ColumnName="InShipment" />
+                <ScalarProperty Name="Deleted" ColumnName="Deleted" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="ShipmentId" ColumnName="ShipmentId" />
+          <ScalarProperty Name="ProductId" ColumnName="ProductId" />
+          <ScalarProperty Name="Count" ColumnName="Count" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Deliveries">
+      <EntityTypeMapping TypeName="IsTypeOf(CarPartsModel.Deliveries)">
+        <MappingFragment StoreEntitySet="Deliveries">
+          <ScalarProperty Name="InsurancePercentCost" ColumnName="InsurancePercentCost" />
+                <ScalarProperty Name="PriceForWeight" ColumnName="PriceForWeight" />
+                <ScalarProperty Name="Deleted" ColumnName="Deleted" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="TrackUrl" ColumnName="TrackUrl" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="ShipmentStatuses">
+      <EntityTypeMapping TypeName="IsTypeOf(CarPartsModel.ShipmentStatuses)">
+        <MappingFragment StoreEntitySet="ShipmentStatuses">
+          <ScalarProperty Name="Deleted" ColumnName="Deleted" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Address">
+      <EntityTypeMapping TypeName="IsTypeOf(CarPartsModel.Address)">
+        <MappingFragment StoreEntitySet="Address">
+          <ScalarProperty Name="Deleted" ColumnName="Deleted" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="Street" ColumnName="Street" />
+          <ScalarProperty Name="HouseNo" ColumnName="HouseNo" />
+          <ScalarProperty Name="FlatNo" ColumnName="FlatNo" />
+          <ScalarProperty Name="PostCode" ColumnName="PostCode" />
+          <ScalarProperty Name="Place" ColumnName="Place" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Customers">
+      <EntityTypeMapping TypeName="IsTypeOf(CarPartsModel.Customers)">
+        <MappingFragment StoreEntitySet="Customers">
+          <ScalarProperty Name="Deleted" ColumnName="Deleted" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="Name" ColumnName="Name" />
+          <ScalarProperty Name="Surname" ColumnName="Surname" />
+          <ScalarProperty Name="CompanyName" ColumnName="CompanyName" />
+          <ScalarProperty Name="NIP" ColumnName="NIP" />
+          <ScalarProperty Name="REGON" ColumnName="REGON" />
+          <ScalarProperty Name="PESEL" ColumnName="PESEL" />
+          <ScalarProperty Name="AddressId" ColumnName="AddressId" />
+          <ScalarProperty Name="Email" ColumnName="Email" />
+          <ScalarProperty Name="Phone" ColumnName="Phone" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+  </EntityContainerMapping>
+</Mapping></edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2008/10/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="True" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

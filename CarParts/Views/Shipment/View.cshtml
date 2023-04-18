@@ -1,0 +1,873 @@
+﻿@using CarParts.Enums;
+@using CarParts.Helpers;
+
+@model CarParts.Models.Shipment.ShipmentModel
+
+@{
+    ViewBag.Title = "Zamówienie " + Model.ShippingNumber;
+
+    string shipmentStatusName = Model.ShipmentStatusList.FirstOrDefault(x => x.Value == Model.ShipmentStatus.ToString()).Text;
+
+    string shipmentStatusPercent = string.Empty;
+    switch ((ShipmentStatus)Model.ShipmentStatus)
+    {
+        case ShipmentStatus.New:
+            shipmentStatusPercent = "0";
+            break;
+        case ShipmentStatus.PartsOrdered:
+            shipmentStatusPercent = "20";
+            break;
+        case ShipmentStatus.PackageCompletion:
+        case ShipmentStatus.Stopped:
+            shipmentStatusPercent = "40";
+            break;
+        case ShipmentStatus.PreparedForShipment:
+            shipmentStatusPercent = "60";
+            break;
+        case ShipmentStatus.WaitingForCourier:
+            shipmentStatusPercent = "80";
+            break;
+        case ShipmentStatus.ReceivedByuCourier:
+            shipmentStatusPercent = "100";
+            break;
+    }
+
+    //Uprawnienia:
+    //Seller widzi: Nowa, Przesłana do magazynu, Oczekiwanie na towar (wstrzymana), Kompletacja zamówienia, Towar przygotowana do wysyłki, Oczekiwanie na kuriera, Towar odebrany przez kuriera
+    //Seller edytuje (towary): Nowa, Oczekiwanie na towar (wstrzymana)
+    //Warehouseman widzi: Przesłana do magazynu, Oczekiwanie na towar (wstrzymana), Kompletacja zamówienia, Towar przygotowana do wysyłki, Oczekiwanie na kuriera, Towar odebrany przez kuriera
+    //Warehouseman edytuje (w zależności od statusu):
+    // - Przesłana do magazynu - może tylko kliknąć "kompletacja zamówienia"
+    // - Oczekiwanie na towar (wstrzymana) - może tylko kliknąć "kompletacja zamówienia"
+    // - Kompletacja zamówienia - zaznacza na liście towary, które są spakowane (autosave)
+    // - Towar przygotowany do wysyłki - podczas zmiany na ten status, wyświetla się formularz: pytanie, jaki ???
+    // - Oczekwianie na kuriera - podczas zmiany na ten status, wyświetla się formularz:
+    //      - wybór kuriera
+    //      - data odbioru przez kuriera
+    //      - przewidywana data dostawy
+    //      - uzupełnia się cena dostawy (dodać do słownika dostaw możliwośc konfiguracji)
+
+
+    //Lista statusów:
+    //Nowa,
+    //Przesłana do magazynu,
+    //Oczekiwanie na towar (wstrzymana),
+    //Kompletacja zamówienia,
+    //Towar przygotowana do wysyłki,
+    //Oczekiwanie na kuriera,
+    //Towar odebrany przez kuriera
+
+    //Czy produkt jest spakowany, widać na statusie: Kompletacja zamówienia, Oczekiwanie na towar (wstrzymana),
+    bool canUserSeePackProduct = Model.ShipmentHaveStatus(ShipmentStatus.PackageCompletion) || Model.ShipmentHaveStatus(ShipmentStatus.Stopped);
+
+    //Dodać produkt do zamówienia może Seller, na statusie: Nowa
+    bool canUserAddProduct = CurrentUser.Seller && Model.ShipmentHaveStatus(ShipmentStatus.New);
+
+    //Zaznaczyć jako spakowany może Warehouseman, na statusie: Kompletacja zamówienia lub Wstrzymany
+    bool canUserPackProduct = CurrentUser.Warehouseman && (Model.ShipmentHaveStatus(ShipmentStatus.PackageCompletion) || Model.ShipmentHaveStatus(ShipmentStatus.Stopped));
+    bool canUserShowQuantityInWarehouse = CurrentUser.Warehouseman;
+
+
+
+    //Zmiana statusów:
+    //Towar zamówiony (wysłanie do magazynu) może Seller, na statusie: Nowa
+    bool canUserSendToWarehouse = CurrentUser.Warehouseman && Model.ShipmentHaveStatus(ShipmentStatus.New);
+
+    //Wstrzymany może wprowadzić Warehouseman, na statusie: Kompletacjazamówienia
+    bool canUserStopShipment = CurrentUser.Warehouseman && Model.ShipmentHaveStatus(ShipmentStatus.PackageCompletion); ;
+
+    //Kompletacja towaru może być wprowadzona przez Warehousemana, na statusie: Towar zamówiony
+    bool canUserCompleteShipment = CurrentUser.Warehouseman && Model.ShipmentHaveStatus(ShipmentStatus.PartsOrdered);
+
+    //Towar przygotowany do wysyłki może wprowadzić Warehouseman, na statusie: Kompletacjazamówienia lub Wstrzymany
+    //Dodatkowym warunkiem jest "Spakowanych produktów 100%" 
+    bool canUserApplyToSend = CurrentUser.Warehouseman && (Model.ShipmentHaveStatus(ShipmentStatus.PackageCompletion) || Model.ShipmentHaveStatus(ShipmentStatus.Stopped));
+
+    //Oczekiwanie na kuriera może wprowadzić Warehouseman, na statusie Towar przygotowany do wysyłki
+    bool canUserWaitForDelivery = CurrentUser.Warehouseman && Model.ShipmentHaveStatus(ShipmentStatus.PreparedForShipment);
+
+    //Towar odebrany przez kuriera wprowadzić może Warehouseman, na statusie Oczekiwanie na kuriera
+    bool canUserGiveToDelivery = CurrentUser.Warehouseman && Model.ShipmentHaveStatus(ShipmentStatus.WaitingForCourier);
+
+    //Usunąć produkt może Seller na statusie Nowa lub Wstrzymany (oczekuje na towar)
+    bool canUserDeleteShipmentProduct = CurrentUser.Seller && (Model.ShipmentHaveStatus(ShipmentStatus.New) || Model.ShipmentHaveStatus(ShipmentStatus.Stopped));
+
+    //Zmienić liczbę produktów w pozycji zamówienia może Seller na statusie Nowa lub Wstrzymany (oczekuje na towar)
+    //Dodatkowym warunkiem jest brak zaznaczenia "Spakowany"!
+    bool canUserChangeShipmentProductCount = CurrentUser.Seller && (Model.ShipmentHaveStatus(ShipmentStatus.New) || Model.ShipmentHaveStatus(ShipmentStatus.Stopped));
+}
+
+@Html.Partial("../Shared/_Messages")
+
+<div class="main">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Zamówienie o numerze: @Model.ShippingNumber
+                </div>
+                <div class="panel-body">
+
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div id="change-status">
+                                @if (canUserSendToWarehouse)
+                                {
+                                    <button type="button" class="btn btn-primary" new-status="@((int)CarParts.Enums.ShipmentStatus.PartsOrdered)">Prześlij do magazynu</button>
+                                }
+                                @if (canUserStopShipment)
+                                {
+                                    <button type="button" class="btn btn-secondary" new-status="@((int)CarParts.Enums.ShipmentStatus.Stopped)">Wstrzymaj zamówienie (oczekiwanie na towar)</button>
+                                }
+                                @if (canUserCompleteShipment)
+                                {
+                                    <button type="button" class="btn btn-success" new-status="@((int)CarParts.Enums.ShipmentStatus.PackageCompletion)">Kompletacja zamówienia</button>
+                                }
+                                @if (canUserApplyToSend)
+                                {
+                                    <button type="button" class="btn btn-danger" new-status="@((int)CarParts.Enums.ShipmentStatus.PreparedForShipment)">Towar przygotowany do wysyłki</button>
+                                }
+                                @if (canUserWaitForDelivery)
+                                {
+                                    <button type="button" class="btn btn-warning" new-status="@((int)CarParts.Enums.ShipmentStatus.WaitingForCourier)">Oczekiwanie na kuriera</button>
+                                }
+                                @if (canUserGiveToDelivery)
+                                {
+                                    <button type="button" class="btn btn-info" new-status="@((int)CarParts.Enums.ShipmentStatus.ReceivedByuCourier)">Towar odebrany przez kuriera</button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Dane zamówienia</div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Data utworzenia zamówienia</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @Model.CreateDate.ToString()
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Status zamówienia</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @shipmentStatusName
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Utworzona przez</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @Model.CreatedByName
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Dane klienta</div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Imię i nazwisko/nazwa</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @(string.IsNullOrEmpty(Model.Customer.CompanyName) ? Model.Customer.Name + " " + Model.Customer.Surname : Model.Customer.CompanyName)
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>NIP i REGON/Pesel</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @(string.IsNullOrEmpty(Model.Customer.CompanyName) ? Model.Customer.PESEL : Model.Customer.NIP + " " + Model.Customer.REGON)
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Adres</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @Model.Customer.Address.Data
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Szczegóły zamówienia</div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-12 control-label">
+                                                <label>Status zamówienia</label>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <div class="progress">
+                                                    <div class="progress-bar" role="progressbar" aria-valuenow="@Model.ShipmentStatus" aria-valuemin="0" aria-valuemax="6" style="width:@(shipmentStatusPercent)%">
+                                                        @(shipmentStatusName)
+                                                        @(shipmentStatusPercent) %
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-12 control-label">
+                                                <label>Spakowanych produktów</label>
+                                            </div>
+                                            <div class="col-sm-12">
+                                                <div class="progress">
+                                                    <div id="productsInShipment" class="progress-bar" role="progressbar" style="width:0%">
+                                                        <span id="packedProducts"></span>/<span id="allProducts"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-4 control-label">
+                                                <label>Wartość zamówienia</label>
+                                            </div>
+                                            <div class="col-sm-2 control-label">
+                                                <b><span style="font-size:14px" id="shipmentPrice"></span> zł</b>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-4 control-label">
+                                                <label>Waga zamówienia</label>
+                                            </div>
+                                            <div class="col-sm-4 control-label">
+                                                @Model.Weight kg
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Szczegóły dostawy</div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Dostawca</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @Model.DeliveryName
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Numer listu przewozowego</label>
+                                            </div>
+                                            <div class="col-sm-3 control-label">
+                                                @Model.ShippingNumber
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(Model.ShipmentTrackingLink))
+                                            {
+                                                <div class="col-sm-4">
+                                                    <button type="button" class="btn btn-sm btn-info" onclick="javascript: location.href = '@Model.ShipmentTrackingLink'">Śledzenie paczki</button>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="row"> 
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Data odbioru zamówienia</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @Model.ReceiptDate.ToString()
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Data dostarczenia zamówienia</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @Model.DeliveryDate.ToString()
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Koszt transportu</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @Model.DeliveryCost zł
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="form-group">
+                                            <div class="col-sm-5 control-label">
+                                                <label>Ubezpieczenie</label>
+                                            </div>
+                                            <div class="col-sm-7 control-label">
+                                                @(Model.Insurance ? "TAK" : "NIE")
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Produkty w paczce</div>
+                                <div class="panel-body">
+                                    <div id="shipmentProductsTable">
+                                        @if (canUserAddProduct)
+                                        {
+                                            <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" id="addRecordButton"><span class="ui-button-text">Dodaj produkt do zamówienia</span></button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="infoAdd" style="display:none;">Dodano produkt.</div>
+
+<div id="addProductTable" style="display:none;">
+    <div class="row">
+        <div class="col-sm-12">
+            <form style="margin-bottom:75px;">
+                <div class="form-group">
+                    <div class="col-sm-3 control-label">
+                        <label>Nazwa:</label>
+                        @Html.TextBox("FilterName", "", new { @class = "form-control" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-3 control-label">
+                        <label>Cechy:</label>
+                        @Html.TextBox("FilterDetails", "", new { @class = "form-control" })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-6 control-label">
+                        <button type="submit" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" id="FilterRecordsButton"><span class="ui-button-text">Szukaj</span></button>
+                        <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" id="ClearFilterButton"><span class="ui-button-text">Wyczyść</span></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="row" style="margin-top:20px">
+        <div class="col-sm-12">
+            <div class="form-group">
+                <div class="col-sm-12 control-label">
+                    <b><i>Kliknij w wybrany produkt, aby dodać go do zamówienia.</i></b>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="formDeliveryData" style="display:none;">
+    <form style="margin-bottom:75px;">
+        <div class="form-group row">
+            <div class="col-sm-12 control-label">
+                <label>Dostawca:</label>
+                @Html.DropDownList("DeliveryId", Model.DeliveryList, new { @class = "form-control" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-12 control-label">
+                <label>Ubezpieczenie:</label>
+                @Html.CheckBox("Insurance", false, new { @class = "form-control" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-12 control-label">
+                <label>Numer listu przewozowego:</label>
+                @Html.TextBox("ShippingNumber", "", new { @class = "form-control" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-12 control-label">
+                <label>Data odbioru przez kuriera:</label>
+                @Html.TextBox("ReceiptDate", "", new { @class = "form-control datepicker", @style="width:100%" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <div class="col-sm-12 control-label">
+                <label>Przewidywana data dostarczenia:</label>
+                @Html.TextBox("DeliveryDate", "", new { @class = "form-control datepicker", @style = "width:100%" })
+            </div>
+        </div>
+
+    </form>
+</div>
+
+@section Scripts{
+
+    <script>
+
+        $(function () {
+
+            $('#shipmentProductsTable').jtable({
+                paging: true,
+                sorting: false,
+                pageSize: 10,
+                defaultSorting: '',
+                actions: {
+                    listAction: '@Html.Raw(@Url.Action("ShipmentProductsJSON", "ShipmentProduct", new { shipmentId = Model.Id }))',
+                    @if(canUserDeleteShipmentProduct)
+                    {
+                        <text>
+                            deleteAction: '@Html.Raw(@Url.Action("DeleteShipmentProductJSON", "ShipmentProduct"))'
+                        </text>
+                    }
+                },
+                messages: jtMsgLang,
+                deleteConfirmation: function (data) {
+                    data.deleteConfirmMessage = 'Czy usunąć ' + data.record.Name + ' z listy produktów?';
+                },
+                fields: {
+                    Id: {
+                        key: true,
+                        list: false,
+                        visibility: "hidden"
+                    },
+                    @if(canUserSeePackProduct)
+                    {
+                        <text>
+                        InShipment: {
+                            create: false,
+                            edit: false,
+                            list: true,
+                            title: "Spakowany",
+                            width: '2%',
+                            type: 'checkbox',
+                            display: function (data) {
+
+                                @if(canUserPackProduct)
+                                {
+                                    <text>
+                                        return '<input class="inshipment" type="checkbox" ' + (data.record.InShipment == true ? 'checked' : '') + ' ' + (data.record.QuantityInWarehouse < data.record.Count ? "disabled" : "") + ' />';
+                                    </text>
+                                }
+                                else
+                                {
+                                    <text>
+                                        return '<input class="inshipment" type="checkbox" ' + (data.record.InShipment == true ? 'checked' : '') + ' disabled />';
+                                    </text>
+                                }
+                            },
+                        },
+                        </text>
+                    }
+                    Name: {
+                        title: 'Nazwa produktu',
+                        width: '10%'
+                    },
+                    Details: {
+                        title: 'Cechy',
+                        width: '10%',
+                        type: 'textarea'
+                    },
+                    Price: {
+                        title: 'Cena',
+                        width: '10%'
+                    },
+                    @if(canUserShowQuantityInWarehouse)
+                    {
+                        <text>
+                            QuantityInWarehouse: {
+                                title: 'Ilość w magazynie',
+                                width: '10%'
+                            },
+                        </text>
+                    }
+                    Count: {
+                        title: 'Ilość w paczce',
+                        width: '10%',
+                        display: function (data) {
+                            @if(canUserChangeShipmentProductCount)
+                            {
+                                <text>
+                                if (data.record.InShipment)
+                                {
+                                    return data.record.Count;
+                                }
+                                else
+                                {
+                                    return '<input type="number" step="1" min="1" max="10000" value="' + data.record.Count + '" />';
+                                }
+                                </text>
+                            }
+                            else
+                            {
+                                <text>return data.record.Count;</text>
+                            }
+                        }
+                    },
+                    Sum: {
+                        title: "Wartość",
+                        width: '10%'
+                    }
+                },
+                recordsLoaded: function (event, data) {
+                    $('#shipmentProductsTable input[type=number]').change(function () {
+                        var key = $(this).closest('tr').attr('data-record-key');
+
+                        $.ajax({
+                            type: "POST",
+                            url: "@Url.Action("UpdateShipmentProductJSON", "ShipmentProduct")",
+                            data: {
+                                Id: key,
+                                Count: $(this).val()
+                            },
+                            success: function (result) {
+                                $('#shipmentProductsTable').jtable('reload');
+                            }
+                        });
+                    });
+
+                    $('#shipmentProductsTable input[class=inshipment]').change(function () {
+                        var key = $(this).closest('tr').attr('data-record-key');
+
+                        var packed = $(this).is(':checked');
+
+                        $.ajax({
+                            type: "POST",
+                            url: "@Url.Action("ProductPackedInShipmentJSON", "ShipmentProduct")",
+                            data: {
+                                Id: key,
+                                InShipment: packed
+                            },
+                            success: function (result) {
+                                $('#shipmentProductsTable').jtable('reload');
+
+                                UpdateProductsInShipmentDetails(result.Data.All, result.Data.Packed);
+                            }
+                        });
+                    });
+
+                    GetProductsInShipment();
+                },
+                recordDeleted: function (event, data) {
+                    $('#shipmentProductsTable').jtable('reload');
+                },
+                recordAdded: function (event, data) {
+                    $('#shipmentProductsTable').jtable('reload');
+                },
+
+                //Initialize validation logic when a form is created
+                formCreated: function (event, data) {
+                    data.form.validationEngine();
+                },
+                //Validate form when it is being submitted
+                formSubmitting: function (event, data) {
+                    return data.form.validationEngine('validate');
+                },
+                //Dispose validation logic when form is closed
+                formClosed: function (event, data) {
+                    data.form.validationEngine('hide');
+                    data.form.validationEngine('detach');
+
+                    $('#shipmentProductsTable').jtable('reload');
+                }
+            });
+
+            $('#shipmentProductsTable').jtable('load');
+
+            $('#addRecordButton').click(function () {
+
+                $("#addProductTable").jtable({
+                    paging: true,
+                    sorting: false,
+                    pageSize: 10,
+                    defaultSorting: '',
+                    actions: {
+                        listAction: '@Html.Raw(@Url.Action("ProductsJSON", "Product"))'
+                    },
+                    messages: jtMsgLang,
+
+                    fields: {
+                        Id: {
+                            key: true,
+                            list: false,
+                            visibility: "hidden"
+                        },
+                        Name: {
+                            title: 'Nazwa produktu',
+                            width: '10%'
+                        },
+                        Details: {
+                            title: 'Cechy',
+                            width: '10%',
+                            type: 'textarea'
+                        },
+                        Price: {
+                            title: 'Cena',
+                            width: '10%'
+                        },
+                        @if(canUserShowQuantityInWarehouse)
+                        {
+                            <text>
+                        QuantityInWarehouse: {
+                            title: 'Ilość w magazynie',
+                            width: '10%'
+                        },
+                            </text>
+                        }
+                    },
+                    recordsLoaded: function (event, data) {
+                        $('#addProductTable .jtable-data-row').css("cursor", "pointer").click(function () {
+                            var row_id = $(this).attr('data-record-key');
+
+                            $.ajax({
+                                type: "POST",
+                                url: "@Url.Action("CreateShipmentProductJSON", "ShipmentProduct")",
+                                data: {
+                                    ShipmentId: '@Model.Id',
+                                    ProductId: row_id,
+                                    Count: 1
+                                },
+                                success: function (result) {
+                                    $('#shipmentProductsTable').jtable('reload');
+
+                                    $("#infoAdd").dialog('open');
+                                    setTimeout(function () {
+                                        $("#infoAdd").dialog('close');
+                                    }, 1000);
+                                }
+                            });
+                        });
+                    }
+                });
+                //$("#addProductTable").jtable("load");
+
+                $('#FilterRecordsButton').click(function (e) {
+                    e.preventDefault();
+                    $('#addProductTable').jtable('load', {
+                        FilterName: $('#FilterName').val(),
+                        FilterDetails: $('#FilterDetails').val()
+                    });
+                });
+
+                $('#ClearFilterButton').click(function (e) {
+                    e.preventDefault();
+
+                    $('#FilterName').val('');
+                    $('#FilterDetails').val('');
+
+                    $('#FilterRecordsButton').click();
+                });
+
+                $('#FilterRecordsButton').click();
+
+                $("#addProductTable").dialog({
+                    modal: true,
+                    autoOpen: true,
+                    width: '75%',
+                    title: 'Wybierz produkt',
+                    buttons: {
+                        "Zamknij": function () {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+
+                $("#infoAdd").dialog({
+                    modal: true,
+                    autoOpen: false,
+                    title: 'Potwierdzenie',
+                    buttons: {
+                        "Zamknij": function () {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+            });
+
+            $('#change-status button').click(function () {
+                var newStatus = $(this).attr('new-status');
+                var shipmentId = '@Model.Id';
+
+
+                switch (newStatus) {
+                    case '@((int)ShipmentStatus.PreparedForShipment)':
+
+                        if (!confirm('Czy na pewno zmienić status zamówienia? System przeliczy automatycznie kwoty wartości i dostawy zamówienia.')) {
+                            return;
+                        }
+
+                         $.ajax({
+                            type: "POST",
+                            url: "@Url.Action("ChangeShipmentStatus", "Shipment")",
+                            data: {
+                                Id: shipmentId,
+                                NewStatus: newStatus
+                            },
+                            success: function (result) {
+                                RefreshShipmentData();
+                            }
+                        });
+                        break;
+                    case '@((int)ShipmentStatus.WaitingForCourier)':
+                        //Wyświetl formularz uzupełnienia danych dostawy
+                        ShowFormDeliveryData(shipmentId, newStatus);
+                        break;
+
+                    default:
+                        if (!confirm('Czy na pewno zmienić status zamówienia?')) {
+                            return;
+                        }
+
+                        $.ajax({
+                            type: "POST",
+                            url: "@Url.Action("ChangeShipmentStatus", "Shipment")",
+                            data: {
+                                Id: shipmentId,
+                                NewStatus: newStatus
+                            },
+                            success: function (result) {
+                                RefreshShipmentData();
+                            }
+                        });
+                        break;
+                }
+            });
+
+            UpdateProductsInShipmentDetails('@Model.AllProductsInShipment', '@Model.PackedProductsInShipment');
+        });
+
+        function RefreshShipmentData() {
+            //Odświeżamy całą strone, np. zmiana statusu
+            location.reload();
+        }
+
+        function ShowFormDeliveryData(shipmentId, newStatus) {
+
+            $("#formDeliveryData").dialog({
+                modal: true,
+                autoOpen: true,
+                title: 'Dane dostawy',
+                buttons: {
+                    "Zapisz": function () {
+
+                        var formData = $('#formDeliveryData form').serializeArray();
+                        formData.push({ name: 'Id', value: shipmentId });
+                        formData.push({ name: 'NewStatus', value: newStatus });
+
+                        $.ajax({
+                            type: "POST",
+                            dataType: 'JSON',
+                            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                            url: "@Url.Action("ChangeShipmentStatus", "Shipment")",
+                            data: formData,
+                            success: function (result) {
+                                RefreshShipmentData();
+                            }
+                        });
+                    },
+                    "Zamknij": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+
+        }
+
+        function UpdateProductsInShipmentDetails(all, packed, price) {
+            var progress = $('#productsInShipment');
+
+            $('#productsInShipment #packedProducts').text(packed);
+            $('#productsInShipment #allProducts').text(all);
+            $('#shipmentPrice').text(price);
+
+            var val = packed / all * 100;
+
+            progress.width(val + '%');
+
+            if (all == 0) {
+                $('#change-status button[new-status=2]').prop('disabled', true);
+            } else {
+                $('#change-status button[new-status=2]').prop('disabled', false);
+            }
+
+            if (packed < all) {
+                $('#change-status button[new-status=4]').prop('disabled', true);
+            } else {
+                $('#change-status button[new-status=4]').prop('disabled', false);
+            }
+        }
+
+        function GetProductsInShipment() {
+            $.ajax({
+                type: "POST",
+                dataType: 'JSON',
+                url: "@Url.Action("GetProductsInShipmentJSON", "ShipmentProduct")",
+                data: { shipmentId: '@Model.Id' },
+                success: function (result) {
+                    UpdateProductsInShipmentDetails(result.Data.All, result.Data.Packed, result.Data.Price);
+                }
+            });
+        }
+
+    </script>
+
+    <style>
+        input[type=number]::-webkit-inner-spin-button {
+            opacity: 1;
+        }
+
+        .ui-dialog {
+            z-index: 1001 !important;
+        }
+    </style>
+
+    @Scripts.Render("~/mainJS")
+}

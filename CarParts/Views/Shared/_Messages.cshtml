@@ -1,0 +1,27 @@
+﻿@if (TempData["SuccesMessage"] != null)
+{
+    <p class="bg-success" style="border-radius:5px;padding:5px 10px;" id="successmsg">
+        <img src="../Images/Icons/accept.png" />&nbsp;
+        @TempData["SuccesMessage"]
+    </p>
+
+    <script>
+        setTimeout(function () {
+            $('#successmsg').hide();
+        }, 5000);
+    </script>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <p class="bg-danger" style="border-radius:5px;padding:5px 10px;" id="errmsg">
+        <img src="../Images/Icons/error.png" />&nbsp;
+        @TempData["ErrorMessage"]
+    </p>
+
+    <script>
+        setTimeout(function () {
+            $('#errmsg').hide();
+        }, 5000);
+    </script>
+}
+

@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width" />
+
+ 
+ 
+
+    <!-- Bootstrap Core CSS -->
+    <link href="~/Content/sbadmin/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    @Styles.Render("~/jQueryUI_CSS")
+
+    <!-- Include one of jTable styles. -->
+    <link href="~/Content/JTable/themes/lightcolor/blue/jtable.min.css" rel="stylesheet" />
+
+    <!-- MetisMenu CSS -->
+    <link href="~/Content/sbadmin/bower_components/metisMenu/dist/metisMenu.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="~/Content/sbadmin/dist/css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="~/Content/sbadmin/bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- JTable Validation CSS -->
+    <link href="~/Content/validationEngine/validationEngine.jquery.css" rel="stylesheet" type="text/css" />
+
+
+    @Styles.Render("~/Content/css")
+   
+    <script>
+        //Localization texts
+        var jtMsgLang = {
+            serverCommunicationError: 'Wystąpił problem podczas komunikacji z serwerem.',
+            loadingMessage: 'Ładowanie rekordów...',
+            noDataAvailable: 'Brak danych.',
+            addNewRecord: 'Dodaj nowy rekord',
+            editRecord: 'Edycja',
+            areYouSure: 'Czy jesteś pewien?',
+            deleteConfirmation: 'Ten rekord zostanie usunięty. Czy jesteś pewien?',
+            save: 'Zapisz',
+            saving: 'Zapisywanie',
+            cancel: 'Anuluj',
+            deleteText: 'Usuń',
+            deleting: 'Usuwanie',
+            error: 'Błąd',
+            close: 'Zamknij',
+            cannotLoadOptionsFor: 'Nie można załadować opcji wyboru dla {0}',
+            pagingInfo: '{0}-{1} z {2}',
+            pageSizeChangeLabel: 'Liczba',
+            gotoPageLabel: 'Idź do',
+            canNotDeletedRecords: 'Nie można usunąć {0} z {1} rekordów!',
+            deleteProggress: 'Usuwanie {0} z {1} rekordów, proszę czekać...'
+        };
+    </script>
+
+</head>
+<body>
+
+    @RenderBody()
+
+    <!-- jQuery -->
+
+
+    <script src="~/Content/sbadmin/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="~/Content/sbadmin/bower_components/metisMenu/dist/metisMenu.min.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="~/Content/sbadmin/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+
+    <!-- Custom Theme JavaScript -->
+    <script src="~/Content/sbadmin/dist/js/sb-admin-2.js"></script>
+
+    @Scripts.Render("~/jQueryUI_JS")
+
+    <!-- Include jTable script file. -->
+    <script src="~/Content/JTable/jquery.jtable.min.js"></script>
+    <script src="~/Scripts/Site.js"></script>
+
+    <!-- JTable Validation -->
+    <script type="text/javascript" src="~/Content/validationEngine/validationEngine.jquery.js"></script>
+    <script type="text/javascript" src="~/Content/validationEngine/validationEngine-pl.jquery.js"></script>
+
+    @RenderSection("scripts", required: false)
+
+
+</body>
+</html>
+

@@ -1,0 +1,348 @@
+﻿@{
+    ViewBag.Title = "Panel klientów";
+}
+
+<div class="main">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Klienci
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+
+                    <div class="row">
+                        <form style="margin-bottom:75px;">
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Nazwa/imię i nazwisko:</label>
+                                    @Html.TextBox("FilterName", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>NIP:</label>
+                                    @Html.TextBox("FilterNIP", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>REGON:</label>
+                                    @Html.TextBox("FilterREGON", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>PESEL:</label>
+                                    @Html.TextBox("FilterPESEL", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Email:</label>
+                                    @Html.TextBox("FilterEmail", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Telefon:</label>
+                                    @Html.TextBox("FilterPhone", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Adres:</label>
+                                    @Html.TextBox("FilterAddress", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-6 control-label">
+                                    <button type="submit" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" id="FilterRecordsButton"><span class="ui-button-text">Szukaj</span></button>
+                                    <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" id="ClearFilterButton"><span class="ui-button-text">Wyczyść</span></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="row" style="margin-top:20px;">
+                        <div class="col-sm-12">
+                            <div id="customersTable">
+                                <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" id="addRecordButton"><span class="ui-button-text">Dodaj nowego klienta</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script>
+        $(function () {
+
+            $('#customersTable').jtable({
+                paging: true,
+                sorting: true,
+                pageSize: 10,
+                defaultSorting: '',
+                actions: {
+                    listAction: '@Html.Raw(@Url.Action("CustomersJSON", "Customer"))',
+                    createAction: '@Html.Raw(@Url.Action("CreateCustomerJSON", "Customer"))',
+                    updateAction: '@Html.Raw(@Url.Action("UpdateCustomerJSON", "Customer"))',
+                    deleteAction: '@Html.Raw(@Url.Action("DeleteCustomerJSON", "Customer"))'
+                },
+                messages: jtMsgLang,
+                deleteConfirmation: function (data) {
+                    data.deleteConfirmMessage = 'Czy usunąć ' + (data.record.CompanyName ? data.record.CompanyName : data.record.Name + ' ' + data.record.Surname) + '?';
+                },
+                fields: {
+                    Id: {
+                        key: true,
+                        list: false,
+                        visibility: "hidden"
+                    },
+                    FullName: {
+                        list: true,
+                        edit: false,
+                        create: false,
+                        sorting: true,
+                        title: 'Nazwa',
+                        width: '10%',
+                        display: function (data) {
+                            if (data.record.CompanyName) {
+                                return data.record.CompanyName;
+                            } else {
+                                return data.record.Name + " " + data.record.Surname;
+                            }
+                        }
+                    },
+                    Name: {
+                        list: false,
+                        edit: true,
+                        create: true,
+                        title: 'Imię',
+                        width: '10%'
+                    },
+                    Surname: {
+                        list: false,
+                        edit: true,
+                        create: true,
+                        title: 'Nazwisko',
+                        width: '10%'
+                    },
+                    CompanyName: {
+                        list: false,
+                        edit: true,
+                        create: true,
+                        title: 'Nazwa firmy',
+                        width: '10%'
+                    },
+                    NIP: {
+                        sorting: false,
+                        title: 'NIP',
+                        width: '10%'
+                    },
+                    REGON: {
+                        sorting: false,
+                        title: 'REGON',
+                        width: '10%'
+                    },
+                    PESEL: {
+                        sorting: false,
+                        title: 'PESEL',
+                        width: '10%'
+                    },
+                    Email: {
+                        sorting: false,
+                        title: 'Email',
+                        width: '10%'
+                    },
+                    Phone: {
+                        sorting: false,
+                        title: 'Telefon',
+                        width: '10%'
+                    },
+                    'Address.Data': {
+                        list: true,
+                        edit: false,
+                        create: false,
+                        sorting: false,
+                        title: 'Adres',
+                        width: '10%',
+                        display: function (data) {
+                            return data.record.Address.Data;
+                        }
+                    },
+                    'Address.Street': {
+                        list: false,
+                        edit: true,
+                        create: true,
+                        title: 'Ulica',
+                        width: '10%',
+                        input: function (data) {
+
+                            var value = '';
+                            if (data.record && data.record.Address && data.record.Address.Street) {
+                                value = data.record.Address.Street;
+                            }
+
+                            return '<input type="text" name="Address.Street" value="' + value + '" />';
+                        }
+                    },
+                    'Address.HouseNo': {
+                        list: false,
+                        edit: true,
+                        create: true,
+                        title: 'Nr budynku',
+                        width: '10%',
+                        input: function (data) {
+
+                            var value = '';
+                            if (data.record && data.record.Address && data.record.Address.HouseNo) {
+                                value = data.record.Address.HouseNo;
+                            }
+
+                            return '<input type="text" name="Address.HouseNo" value="' + value + '" />';
+                        }
+                    },
+                    'Address.FlatNo': {
+                        list: false,
+                        edit: true,
+                        create: true,
+                        title: 'Nr lokalu',
+                        width: '10%',
+                        input: function (data) {
+
+                            var value = '';
+                            if (data.record && data.record.Address && data.record.Address.FlatNo) {
+                                value = data.record.Address.FlatNo;
+                            }
+
+                            return '<input type="text" name="Address.FlatNo" value="' + value + '" />';
+                        }
+                    },
+                    'Address.PostCode': {
+                        list: false,
+                        edit: true,
+                        create: true,
+                        title: 'Kod pocztowy',
+                        width: '10%',
+                        input: function (data) {
+
+                            var value = '';
+                            if (data.record && data.record.Address && data.record.Address.PostCode) {
+                                value = data.record.Address.PostCode;
+                            }
+
+                            return '<input type="text" name="Address.PostCode" value="' + value + '" />';
+                        }
+                    },
+                    'Address.Place': {
+                        list: false,
+                        edit: true,
+                        create: true,
+                        title: 'Miejscowość',
+                        width: '10%',
+                        input: function (data) {
+
+                            var value = '';
+                            if (data.record && data.record.Address && data.record.Address.Place) {
+                                value = data.record.Address.Place;
+                            }
+
+                            return '<input type="text" name="Address.Place" value="' + value + '" />';
+                        }
+                    },
+                },
+                recordsLoaded: function (event, data) {
+
+                    
+                },
+                recordDeleted: function (event, data) {
+                    $('#customersTable').jtable('reload');
+                },
+                recordAdded: function (event, data) {
+                    $('#customersTable').jtable('reload');
+                },
+                addRecordButton: $('#addRecordButton'),
+
+                //Initialize validation logic when a form is created
+                formCreated: function (event, data) {
+                    //walidacja na polach
+
+                    data.form.validationEngine();
+                },
+                //Validate form when it is being submitted
+                formSubmitting: function (event, data) {
+                    return data.form.validationEngine('validate');
+                },
+                //Dispose validation logic when form is closed
+                formClosed: function (event, data) {
+                    data.form.validationEngine('hide');
+                    data.form.validationEngine('detach');
+
+                    $('#customersTable').jtable('reload');
+                }
+            });
+
+            $('#FilterRecordsButton').click(function (e) {
+                e.preventDefault();
+                $('#customersTable').jtable('load', {
+                    FilterName: $('#FilterName').val(),
+                    FilterNIP: $('#FilterNIP').val(),
+                    FilterREGON: $('#FilterREGON').val(),
+                    FilterPESEL: $('#FilterPESEL').val(),
+                    FilterEmail: $('#FilterEmail').val(),
+                    FilterPhone: $('#FilterPhone').val(),
+                    FilterAddress: $('#FilterAddress').val()
+                });
+            });
+
+            $('#ClearFilterButton').click(function (e) {
+                e.preventDefault();
+
+                $('#FilterName').val('');
+                $('#FilterNIP').val('');
+                $('#FilterREGON').val('');
+                $('#FilterPESEL').val('');
+                $('#FilterNIP').val('');
+                $('#FilterEmail').val('');
+                $('#FilterPhone').val('');
+                $('#FilterAddress').val('');
+
+                $('#FilterRecordsButton').click();
+            });
+
+            $('#FilterRecordsButton').click();
+        });
+    </script>
+
+    <style>
+        form.jtable-dialog-form div.jtable-input-field-container {
+            padding: 2px 0px 3px 0px;
+            border-bottom: 1px solid #ddd;
+            width: 200px;
+            display: block;
+            float: left;
+        }
+
+        form.jtable-dialog-form {
+            width: 400px;
+        }
+
+    </style>
+
+    @Scripts.Render("~/mainJS")
+}

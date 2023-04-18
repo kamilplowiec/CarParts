@@ -1,0 +1,181 @@
+﻿@model bool
+@{
+    ViewBag.Title = "Panel";
+
+    if (!Model)
+    {
+        Layout = "~/Views/Shared/_WindowLayout.cshtml";
+    }
+}
+
+<div class="main">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Produkty
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div class="row">
+                        <form style="margin-bottom:75px;">
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Nazwa:</label>
+                                    @Html.TextBox("FilterName", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Cechy:</label>
+                                    @Html.TextBox("FilterDetails", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-6 control-label">
+                                    <button type="submit" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" id="FilterRecordsButton"><span class="ui-button-text">Szukaj</span></button>
+                                    <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" id="ClearFilterButton"><span class="ui-button-text">Wyczyść</span></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="row" style="margin-top:20px;">
+                        <div class="col-sm-12">
+                            <div id="productsTable">
+                                <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" id="addRecordButton"><span class="ui-button-text">Dodaj nowy produkt</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script>
+        $(function () {
+
+        $('#productsTable').jtable({
+            paging: true,
+            sorting: true,
+            pageSize: 10,
+            defaultSorting: '',
+            actions: {
+                listAction: '@Html.Raw(@Url.Action("ProductsJSON", "Product"))',
+                createAction: '@Html.Raw(@Url.Action("CreateProductJSON", "Product"))',
+                updateAction: '@Html.Raw(@Url.Action("UpdateProductJSON", "Product"))',
+                deleteAction: '@Html.Raw(@Url.Action("DeleteProductJSON", "Product"))'
+            },
+            messages: jtMsgLang,
+            deleteConfirmation: function (data) {
+                data.deleteConfirmMessage = 'Czy usunąć ' + data.record.Name + '?';
+            },
+            fields: {
+                    Id: {
+                        key: true,
+                        list: false,
+                        visibility: "hidden"
+                    },
+                    Name: {
+                        sorting: true,
+                        title: 'Nazwa produktu',
+                        width: '10%'
+                    },
+                    Details: {
+                        sorting: true,
+                        title: 'Cechy',
+                        width: '10%',
+                        type: 'textarea'
+                    },
+                    Price: {
+                        sorting: false,
+                        title: 'Cena',
+                        width: '10%'
+                    },
+                    Weight: {
+                        sorting: false,
+                        title: 'Waga 1szt [kg]',
+                        width: '10%'
+                    },
+                    QuantityInWarehouse: {
+                        sorting: false,
+                        title: 'Ilość w magazynie',
+                        width: '10%'
+                    },
+
+            },
+            recordsLoaded: function (event, data) {
+
+                //W zalezności od ilości kolorować linię
+                //Jeżeli 0 - czerwony, 1-5 - zolty, > 5 - brak
+
+                for (var i in data.records) {
+                    if (data.records[i].QuantityInWarehouse >= 1 && data.records[i].QuantityInWarehouse <= 5) {
+                        $('#productsTable').find(".jtable tbody tr:eq(" + i + ")").css("background", "#e3da74");
+                    } else if (data.records[i].QuantityInWarehouse < 1) {
+                        $('#productsTable').find(".jtable tbody tr:eq(" + i + ")").css("background", "#ab3c38");
+                    }
+                }
+            },
+            recordDeleted: function (event, data) {
+                $('#productsTable').jtable('reload');
+            },
+            recordAdded: function (event, data) {
+                $('#productsTable').jtable('reload');
+            },
+            addRecordButton: $('#addRecordButton'),
+
+            //Initialize validation logic when a form is created
+            formCreated: function (event, data) {
+                data.form.find('input[name="Name"]').addClass('validate[required]');
+                data.form.find('input[name="Price"]').addClass('validate[required]');
+                data.form.find('input[name="Weight"]').addClass('validate[required]');
+                data.form.find('input[name="QuantityInWarehouse"]').addClass('validate[required]');
+                data.form.validationEngine();
+            },
+            //Validate form when it is being submitted
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            //Dispose validation logic when form is closed
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+
+                $('#productsTable').jtable('reload');
+            }
+        });
+
+        $('#FilterRecordsButton').click(function (e) {
+            e.preventDefault();
+            $('#productsTable').jtable('load', {
+                FilterName: $('#FilterName').val(),
+                FilterDetails: $('#FilterDetails').val()
+            });
+        });
+
+        $('#ClearFilterButton').click(function (e) {
+            e.preventDefault();
+
+            $('#FilterName').val('');
+            $('#FilterDetails').val('');
+
+            $('#FilterRecordsButton').click();
+        });
+
+        $('#FilterRecordsButton').click();
+    })
+    </script>
+
+    <style>
+    </style>
+
+    @Scripts.Render("~/mainJS")
+}

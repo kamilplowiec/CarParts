@@ -1,0 +1,244 @@
+﻿@{
+    ViewBag.Title = "Panel użytkowników";
+
+    var roleList = string.Empty;
+    if (ViewBag.RoleList != null)
+    {
+        roleList = Json.Encode(((List<SelectListItem>)ViewBag.RoleList).Select(c => new { DisplayText = c.Text, Value = c.Value }).OrderBy(s => s.Value));
+    }
+}
+
+<div class="main">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Lista użytkowników
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+
+                    <div class="row">
+                        <form style="margin-bottom:75px;">
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Nazwa:</label>
+                                    @Html.TextBox("FilterFirstName", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Nazwisko:</label>
+                                    @Html.TextBox("FilterLastName", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Login:</label>
+                                    @Html.TextBox("FilterUsername", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Email:</label>
+                                    @Html.TextBox("FilterEmail", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Rola:</label>
+                                    @Html.DropDownList("FilterAccountRole", ((List<SelectListItem>)ViewBag.RoleList), new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-6 control-label">
+                                    <button type="submit" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" id="FilterRecordsButton"><span class="ui-button-text">Szukaj</span></button>
+                                    <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" id="ClearFilterButton"><span class="ui-button-text">Wyczyść</span></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="row" style="margin-top:20px;">
+                        <div class="col-sm-12">
+                            <div id="usersTable">
+                                <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" id="addRecordButton"><span class="ui-button-text">Dodaj użytkownika</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script>
+        $(function () {
+
+        $('#usersTable').jtable({
+            paging: true,
+            sorting: true,
+            pageSize: 10,
+            defaultSorting: '',
+            actions: {
+                listAction: '@Html.Raw(@Url.Action("UsersJSON", "Account"))',
+                createAction: '@Html.Raw(@Url.Action("CreateUserJSON", "Account"))',
+                updateAction: '@Html.Raw(@Url.Action("UpdateUserJSON", "Account"))',
+                deleteAction: '@Html.Raw(@Url.Action("DeleteUserJSON", "Account"))'
+            },
+            messages: jtMsgLang,
+            deleteConfirmation: function (data) {
+                data.deleteConfirmMessage = 'Czy chcesz usunąć ' + data.record.UserName + '?';
+            },
+            fields: {
+                    Id: {
+                        key: true,
+                        list: false,
+                        create: false,
+                        edit: false,
+                        sorting: true,
+                        visibility: "hidden"
+                    },
+                    FirstName: {
+                        title: 'Imię',
+                        width: '10%'
+                    },
+                    LastName: {
+                        title: 'Nazwisko',
+                        width: '10%'
+                    },
+                    UserName: {
+                        title: 'Login',
+                        width: '10%'
+                    },
+                    Email: {
+                        title: 'Email',
+                        width: '10%'
+                    },
+                    AccountRole: {
+                        title: 'Rola',
+                        width: '10%',
+                        options: JSON.parse('@Html.Raw(roleList)')
+                    },
+                    ChangePassword: {
+                        list: false,
+                        create: false,
+                        title: 'Zmiana hasła?',
+                        width: '10%',
+                        type: 'checkbox',
+                        values: { 'false': 'Nie', 'true': 'Tak' },
+                        defaultValue: 'false'
+                    },
+                    Password: {
+                        list: false,
+                        title: 'Hasło',
+                        type: 'password',
+                        width: '10%'
+                    },
+                    ConfirmPassword: {
+                        list: false,
+                        title: 'Powtórz hasło',
+                        type: 'password',
+                        width: '10%'
+                    }
+
+            },
+            recordsLoaded: function (event, data) {
+
+            },
+            recordDeleted: function (event, data) {
+                $('#usersTable').jtable('reload');
+            },
+            recordAdded: function (event, data) {
+                $('#usersTable').jtable('reload');
+            },
+            addRecordButton: $('#addRecordButton'),
+
+            //Initialize validation logic when a form is created
+            formCreated: function (event, data) {
+                data.form.find('input[name="FirstName"]').addClass('validate[required]');
+                data.form.find('input[name="LastName"]').addClass('validate[required]');
+                data.form.find('input[name="UserName"]').addClass('validate[required]');
+                data.form.find('input[name="Email"]').addClass('validate[required]');
+                //
+
+                if (data.form[0].id == 'jtable-edit-form') {
+                    $('#Edit-ChangePassword').change(function () {
+                        var value = $('#Edit-ChangePassword').val();
+
+                        if (value == 'true') {
+                            $('#Edit-Password').removeAttr('disabled');
+                            $('#Edit-ConfirmPassword').removeAttr('disabled');
+                            data.form.find('input[name="Password"]').addClass('validate[required]');
+                            data.form.find('input[name="ConfirmPassword"]').addClass('validate[required]');
+                        } else {
+                            $('#Edit-Password').attr('disabled', true);
+                            $('#Edit-ConfirmPassword').attr('disabled', true);
+                            data.form.find('input[name="Password"]').removeClass('validate[required]');
+                            data.form.find('input[name="ConfirmPassword"]').removeClass('validate[required]');
+                        }
+
+                        data.form.validationEngine();
+                    });
+
+                    $('#Edit-ChangePassword').change();
+                } else {
+                    data.form.find('input[name="Password"]').removeClass('validate[required]');
+                    data.form.find('input[name="ConfirmPassword"]').removeClass('validate[required]');
+                    data.form.validationEngine();
+                }
+            },
+            //Validate form when it is being submitted
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            //Dispose validation logic when form is closed
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+
+                $('#usersTable').jtable('reload');
+            }
+        });
+
+            $('#FilterRecordsButton').click(function (e) {
+                e.preventDefault();
+                $('#usersTable').jtable('load', {
+                    FilterFirstName: $('#FilterFirstName').val(),
+                    FilterLastName: $('#FilterLastName').val(),
+                    FilterUsername: $('#FilterUsername').val(),
+                    FilterEmail: $('#FilterEmail').val(),
+                    FilterAccountRole: $('#FilterAccountRole').val()
+                });
+            });
+
+            $('#ClearFilterButton').click(function (e) {
+                e.preventDefault();
+
+                $('#FilterFirstName').val('');
+                $('#FilterLastName').val('');
+                $('#FilterUsername').val('');
+                $('#FilterEmail').val('');
+                $('#FilterAccountRole').val('');
+
+                $('#FilterRecordsButton').click();
+            });
+
+            $('#FilterRecordsButton').click();
+    })
+    </script>
+
+    <style>
+    </style>
+
+    @Scripts.Render("~/mainJS")
+}

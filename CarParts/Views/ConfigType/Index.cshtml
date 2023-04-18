@@ -1,0 +1,128 @@
+﻿@{
+    ViewBag.Title = "Panel zarządzania";
+}
+
+<div class="main">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Config types
+                </div>
+                <!-- /.panel-heading -->
+                <div class="panel-body">
+                    <div id="configTypesTable">
+                        <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" id="addRecordButton"><span class="ui-button-text">Add new Config Type</span></button>
+                    </div>
+
+                </div>
+                <!-- /.panel-body -->
+            </div>
+            <!-- /.panel -->
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script>
+        $(function () {
+
+        $('#configTypesTable').jtable({
+            paging: false,
+            sorting: false,
+            pageSize: 10,
+            defaultSorting: '',
+            actions: {
+                listAction: '@Html.Raw(@Url.Action("ConfigTypesJSON", "ConfigType"))',
+                createAction: '@Html.Raw(@Url.Action("CreateConfigTypeJSON", "ConfigType"))',
+                updateAction: '@Html.Raw(@Url.Action("UpdateConfigTypeJSON", "ConfigType"))',
+                deleteAction: '@Html.Raw(@Url.Action("DeleteConfigTypeJSON", "ConfigType"))'
+            },
+            messages: jtMsgLang,
+            deleteConfirmation: function (data) {
+                data.deleteConfirmMessage = (data.record.Active == true) ? 
+                                                'Do you want to delete ' + data.record.Name + '?' : 
+                                                'Do you want to restore ' + data.record.Name + '?';
+            },
+            fields: {
+                    Id: {
+                        key: true,
+                        list: false,
+                        visibility: "hidden"
+                    },
+                    Name: {
+                        title: 'Name',
+                        width: '10%'
+                    },
+                    ShortName: {
+                        title: 'Short name',
+                        width: '10%'
+                    }
+            },
+            recordsLoaded: function (event, data) {
+                
+            },
+            recordDeleted: function (event, data) {
+                $('#configTypesTable').jtable('reload');
+            },
+            recordAdded: function (event, data) {
+                $('#configTypesTable').jtable('reload');
+            },
+            addRecordButton: $('#addRecordButton'),
+
+            //Initialize validation logic when a form is created
+            formCreated: function (event, data) {
+                data.form.find('input[name="Name"]').addClass('validate[required]');
+                data.form.find('input[name="ShortName"]').addClass('validate[required]');
+                data.form.validationEngine();
+
+                data.form.find('div[class="jtable-input jtable-text-input"], div[class="jtable-input jtable-date-input"]').parent().wrapAll('<div class="col1"/>');
+                data.form.find('div[class="jtable-input jtable-checkbox-input"]').parent().wrapAll('<div class="col2"/>');
+                
+                @*$('.col2').html('@Html.Raw(cbxHtml)');    
+                
+                $.each(data.record.configTypeConfig, function (i, obj) {
+                    $('#cbx_' + obj.ConfigTypeId).prop('checked', true);
+                });*@                
+            },
+            //Validate form when it is being submitted
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            //Dispose validation logic when form is closed
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+
+                $('#configTypesTable').jtable('reload');
+            }
+        });
+
+            $('#configTypesTable').jtable('load');
+    })
+</script>
+
+    <style>
+    .col1
+    {
+        float:left;
+        padding: 5px 10px 5px 5px;
+        width: 49%;
+    }
+
+    .col2
+    {
+        float:right;
+        padding: 5px 5px 5px 10px;
+        width: 49%;
+    }
+
+    #jtable-edit-form, #jtable-create-form
+    {
+        width:600px !important;
+    }
+    </style>
+
+    @Scripts.Render("~/mainJS")
+}

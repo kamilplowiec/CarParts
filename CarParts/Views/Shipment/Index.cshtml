@@ -1,0 +1,259 @@
+﻿@{
+    ViewBag.Title = "Panel";
+
+    var customerList = string.Empty;
+    var statusList = string.Empty;
+
+    List<SelectListItem> shipmentStatusList = new List<SelectListItem>()
+    {
+        new SelectListItem(){ Text = "--Wszystkie--", Value = "0", Selected = true }
+    };
+
+    if (ViewBag.CustomerList != null)
+    {
+        customerList = Json.Encode(((List<SelectListItem>)ViewBag.CustomerList).Select(c => new { DisplayText = c.Text, Value = c.Value }).OrderBy(s => s.Value));
+    }
+    if (ViewBag.ShipmentStatusList != null)
+    {
+        statusList = Json.Encode(((List<SelectListItem>)ViewBag.ShipmentStatusList).Select(c => new { DisplayText = c.Text, Value = c.Value }).OrderBy(s => s.Value));
+        
+        shipmentStatusList.AddRange((List<SelectListItem>)ViewBag.ShipmentStatusList);
+    }
+}
+
+<div class="main">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <i class="fa fa-bar-chart-o fa-fw"></i> Zamówienia
+                </div>
+                <div class="panel-body">
+                    <div class="row filtering" style="margin-bottom:10px;">
+                        <form>
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <label>Nr listu przewozowego:</label>
+                                    @Html.TextBox("FilterShippingNumber", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-2 control-label">
+                                    <label>Klient:</label>
+                                    @Html.TextBox("FilterCustomer", "", new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-2 control-label">
+                                    <label>Data utworzenia:</label>
+                                    @Html.TextBox("FilterCreateDate", "", new { @class = "form-control datepicker" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-2 control-label">
+                                    <label>Status:</label>
+                                    @Html.DropDownList("FilterShipmentStatus", shipmentStatusList, new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 control-label">
+                                    <button type="submit" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" id="FilterRecordsButton"><span class="ui-button-text">Szukaj</span></button>
+                                    <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" id="ClearFilterButton"><span class="ui-button-text">Wyczyść</span></button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div id="shipmentsTable">
+                                <button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" style="margin-bottom:10px;" role="button" id="addRecordButton"><span class="ui-button-text">Dodaj zamówienie</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script>
+        $(function () {
+
+            $('#shipmentsTable').jtable({
+            messages: jtMsgLang,
+            paging: true,
+            sorting: true,
+            pageSize: 10,
+            defaultSorting: 'CreateDate DESC',
+            actions: {
+                listAction: '@Html.Raw(@Url.Action("ShipmentsJSON", "Shipment"))',
+                createAction: '@Html.Raw(@Url.Action("CreateShipmentJSON", "Shipment"))',
+                updateAction: '@Html.Raw(@Url.Action("UpdateShipmentJSON", "Shipment"))',
+                deleteAction: '@Html.Raw(@Url.Action("DeleteShipmentJSON", "Shipment"))'
+            },
+            deleteConfirmation: function (data) {
+                data.deleteConfirmMessage = 'Czy na pewno usunąć to zamówienie?';
+            },
+            fields: {
+                    Id: {
+                        key: true,
+                        list: false,
+                        visibility: "hidden"
+                    },
+                    ShipmentStatus: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        sorting: true,
+                        title: 'Status zamówienia',
+                        width: '10%',
+                        options: JSON.parse('@Html.Raw(statusList)')
+                    },
+                    CreateDate: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        sorting: true,
+                        title: 'Data utworzenia',
+                        width: '10%',
+                        displayFormat: 'yy-mm-dd',
+                        inputClass: 'datepicker',
+                        type: 'date'
+                    },
+                    ReceiptDate: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        sorting: true,
+                        title: 'Data odbioru',
+                        width: '10%',
+                        displayFormat: 'yy-mm-dd',
+                        inputClass: 'datepicker',
+                        type: 'date'
+                    },
+                    DeliveryDate: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        sorting: true,
+                        title: 'Data dostarczenia',
+                        width: '10%',
+                        displayFormat: 'yy-mm-dd',
+                        inputClass: 'datepicker',
+                        type: 'date'
+                    },
+                    Insurance: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        sorting: false,
+                        title: 'Ubezpieczenie',
+                        width: '10%',
+                        options: { '1': 'TAK', '0': 'NIE' }
+                    },
+                    DeliveryCost: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        sorting: false,
+                        title: 'Koszt transportu',
+                        width: '10%'
+                    },
+                    ShippingNumber: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        sorting: false,
+                        title: 'Nr listu przewozowego',
+                        width: '10%'
+                    },
+                    Price: {
+                        list: true,
+                        create: false,
+                        edit: false,
+                        sorting: false,
+                        title: 'Wartość',
+                        width: '10%'
+                    },
+                    CustomerId: {
+                        list: true,
+                        create: true,
+                        edit: true,
+                        sorting: true,
+                        title: 'Klient',
+                        width: '10%',
+                        options: JSON.parse('@Html.Raw(customerList)')
+                    }
+            },
+            recordsLoaded: function (event, data) {
+                $('.jtable-data-row').css("cursor", "pointer").click(function () {
+                    var row_id = $(this).attr('data-record-key');
+                    document.location.href = '@Url.Action("View", "Shipment")/' + row_id;
+                });
+            },
+            recordDeleted: function (event, data) {
+                $('#shipmentsTable').jtable('reload');
+            },
+            recordAdded: function (event, data) {
+                $('#shipmentsTable').jtable('reload');
+
+                document.location.href = '@Url.Action("View", "Shipment")/' + data.record.Id;
+            },
+            addRecordButton: $('#addRecordButton'),
+
+            //Initialize validation logic when a form is created
+            formCreated: function (event, data) {
+                data.form.validationEngine();
+            },
+            //Validate form when it is being submitted
+            formSubmitting: function (event, data) {
+                return data.form.validationEngine('validate');
+            },
+            //Dispose validation logic when form is closed
+            formClosed: function (event, data) {
+                data.form.validationEngine('hide');
+                data.form.validationEngine('detach');
+
+                $('#shipmentsTable').jtable('reload');
+            }
+        });
+
+        $('#FilterRecordsButton').click(function (e) {
+            e.preventDefault();
+            $('#shipmentsTable').jtable('load', {
+                FilterShippingNumber: $('#FilterShippingNumber').val(),
+                FilterCreateDate: $('#FilterCreateDate').val(),
+                FilterCustomer: $('#FilterCustomer').val(),
+                FilterShipmentStatus: $('#FilterShipmentStatus').val()
+            });
+        });
+
+
+        $('#ClearFilterButton').click(function (e) {
+            e.preventDefault();
+
+            $('#FilterShippingNumber').val('');
+            $('#FilterCreateDate').val('');
+            $('#FilterCustomer').val('');
+            $('#FilterShipmentStatus').val(0);
+
+            $('#FilterRecordsButton').click();
+        });
+
+        //Load all records when page is first shown
+        $('#FilterRecordsButton').click();
+    })
+    </script>
+
+    <style>
+    </style>
+
+    @Scripts.Render("~/mainJS")
+}

@@ -1,0 +1,277 @@
+﻿html {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    color: white;
+    font-size: 12px;
+    font-family: "Segoe UI", Verdana, Helvetica, Sans-Serif;
+    margin: 0;
+    padding: 0;
+}
+
+.main .panel {
+    -webkit-box-shadow: 10px 10px 6px -6px rgba(0,0,0,0.35);
+    -moz-box-shadow: 10px 10px 6px -6px rgba(0,0,0,0.35);
+    box-shadow: 10px 10px 6px -6px rgba(0,0,0,0.35);
+}
+
+    .main .panel:hover {
+        -webkit-box-shadow: 10px 10px 6px -6px rgba(0,0,0,0.75);
+        -moz-box-shadow: 10px 10px 6px -6px rgba(0,0,0,0.75);
+        box-shadow: 10px 10px 6px -6px rgba(0,0,0,0.75);
+    }
+
+.main .panel {
+    /*margin-top: 20px;*/
+    background-color: #00000094;
+}
+
+.bottom-info {
+    position: absolute;
+    bottom: 0;
+    background-color: #000;
+    opacity: 0.7;
+    width: 100%;
+    padding: 10px;
+    text-align: left;
+    color: white;
+    font-size: 12px;
+    display: none;
+}
+
+.top-info {
+    position: absolute;
+    top: 0;
+    background-color: #337ab7;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    color: white;
+    opacity: 0.8;
+}
+
+.panel-heading {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.page-body {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.login-panel {
+    margin-top: 20%;
+}
+
+.pull-left {
+    float: left;
+}
+
+.pull-right {
+    float: right;
+}
+
+.footer-below .pull-left a,
+.footer-below .pull-right a {
+    color: white;
+}
+
+/* styles for validation helpers */
+
+.input-validation-error {
+    background-color: #fff !important;
+    /*border-bottom-left-radius: 0 !important;*/
+    border-color: #e7bebe #e7bebe #e7bebe -moz-use-text-color !important;
+    border-left: medium none !important;
+    /*border-top-left-radius: 0 !important;*/
+    box-shadow: .3em 0 0 0 #d95c5c inset !important;
+    color: #d95c5c !important;
+    padding-left: 1.2em !important;
+    border: 1px solid;
+}
+
+.field-validation-error {
+    color: #d95c5c !important;
+    font-size: 12px;
+    font-weight: bold;
+    display: block;
+    margin: 0 5px 5px;
+    line-height: 15px;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+input[type="checkbox"].input-validation-error {
+    border: 0 none;
+}
+
+.validation-summary-errors {
+    color: #e80c4d;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.validation-summary-valid {
+    display: none;
+}
+
+.logo img {
+    width: 100%;
+}
+
+.navbar-brand {
+    padding: 0;
+}
+
+    .navbar-brand img {
+        width: 90px;
+    }
+
+    .navbar-brand .info {
+        font-size: 15px;
+        font-weight: bold;
+        padding: 15px;
+        vertical-align: middle;
+    }
+
+.number-top {
+    margin-left: 10px;
+}
+
+.number-top {
+    background: -moz-linear-gradient(center top, #EA5050 0%, #CC2A28 100%) repeat;
+    border-radius: 2px;
+    color: #FFFFFF;
+    display: inline-block;
+    float: right;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 14px;
+    padding: 1px 5px;
+    text-align: center;
+}
+
+.number-top-green {
+    background: -moz-linear-gradient(center top, light-green 0%, green 100%) repeat;
+}
+
+.redstar {
+    color: Red;
+    font-family: arial;
+    font-size: 13px;
+}
+
+.jtable-main-container select {
+    color: black;
+}
+
+.datepicker {
+    width: 130px;
+    background: rgba(255,255,255,1) url("../Images/Icons/calendar.png") no-repeat scroll 100% center !important;
+}
+
+#side-menu i.fa {
+    font-size: 20px;
+}
+
+body {
+    background: url('../Images/Images/Where-to-Buy-Car-Spare-Parts-in-Dubai-Cover-20210806.jpg') no-repeat scroll center top;
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+.ui-widget-header {
+    color: black;
+}
+
+div.jtable-main-container > table.jtable > thead th.jtable-column-header div.jtable-column-header-container {
+    height: auto;
+    margin-left: 4px;
+}
+
+
+/* -- Panel logowania - pola i przyciski -- */
+
+.login-panel {
+    background-color: inherit;
+    border: none;
+}
+
+    .login-panel .panel-body {
+        background-color: #000000a3;
+    }
+
+        .login-panel .panel-body .form-control,
+        .login-panel .panel-body button,
+        .login-panel .panel-body a {
+            border-radius: 25px;
+        }
+
+    .login-panel fieldset i {
+        position: absolute;
+    }
+
+    .login-panel .panel-body fieldset .icon {
+        padding: 8px 20px;
+        min-width: 40px;
+        font-size: 20px;
+        color: lightgray;
+    }
+
+    .login-panel .panel-body .form-control {
+        width: 100%;
+        text-align: center;
+    }
+
+    .login-panel .panel-body hr {
+        border-radius: 100%;
+        height: 2px;
+        background: lightgray;
+    }
+
+    .login-panel .logo {
+        min-height: 80px;
+        margin-left: auto;
+        margin-right: auto;
+        width: 170px;
+    }
+
+        .login-panel .logo .icon {
+            padding: 30px 30px;
+            margin-top: -80px;
+            border: 1px solid;
+            border-radius: 100%;
+            background: #444444;
+            min-width: 40px;
+            font-size: 100px;
+            color: lightgray;
+        }
+
+/* -- Przyciski główne i pomocnicze -- */
+
+.btn-primary {
+    color: white;
+    border-color: inherit;
+    background-color: #9f9b9b;
+}
+
+    .btn-primary:hover {
+        background-color: #4a4646;
+        border-color: white;
+    }
+
+.btn-secondary {
+    color: white;
+    border: 1px solid lightgray;
+}
+
+    .btn-secondary:hover {
+        background-color: #4a4646;
+        border-color: white;
+        color: white;
+    }
